@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>VaakShruti - Text To Speech Converter</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#0f172a,#1e293b,#0f172a);
+overflow:hidden;
+padding:20px;
+}
+
+body::before{
+content:"";
+position:absolute;
+width:400px;
+height:400px;
+background:#3b82f6;
+border-radius:50%;
+top:-150px;
+left:-150px;
+filter:blur(140px);
+opacity:.4;
+}
+
+body::after{
+content:"";
+position:absolute;
+width:400px;
+height:400px;
+background:#8b5cf6;
+border-radius:50%;
+bottom:-150px;
+right:-150px;
+filter:blur(140px);
+opacity:.4;
+}
+
+.container{
+position:relative;
+z-index:10;
+
+width:100%;
+max-width:700px;
+
+padding:35px;
+
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(20px);
+
+border:1px solid rgba(255,255,255,0.1);
+
+border-radius:30px;
+
+box-shadow:
+0 8px 32px rgba(0,0,0,.35);
+
+display:flex;
+flex-direction:column;
+gap:20px;
+}
+
+.logo{
+text-align:center;
+}
+
+.logo h1{
+font-size:3rem;
+font-weight:700;
+color:white;
+}
+
+.logo span{
+color:#60a5fa;
+}
+
+.logo p{
+margin-top:8px;
+color:#cbd5e1;
+font-size:14px;
+}
+
+textarea{
+width:100%;
+height:220px;
+
+background:rgba(255,255,255,.08);
+
+border:none;
+outline:none;
+
+padding:20px;
+
+border-radius:20px;
+
+font-size:16px;
+color:white;
+
+resize:none;
+
+box-shadow:
+inset 5px 5px 15px rgba(0,0,0,.2),
+inset -5px -5px 15px rgba(255,255,255,.05);
+}
+
+textarea::placeholder{
+color:#94a3b8;
+}
+
+.controls{
+display:flex;
+flex-direction:column;
+gap:15px;
+width:100%;
+}
+
+select{
+width:100%;
+max-width:100%;
+
+padding:15px;
+
+border:none;
+outline:none;
+
+border-radius:15px;
+
+background:rgba(255,255,255,.08);
+
+color:white;
+font-size:15px;
+
+cursor:pointer;
+
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+}
+
+option{
+background:#0f172a;
+color:white;
+}
+
+.buttons{
+display:flex;
+gap:15px;
+width:100%;
+}
+
+button{
+flex:1;
+
+padding:15px;
+
+border:none;
+outline:none;
+
+border-radius:15px;
+
+cursor:pointer;
+
+font-size:16px;
+font-weight:600;
+
+transition:.3s;
+}
+
+.speak-btn{
+background:linear-gradient(
+135deg,
+#3b82f6,
+#2563eb
+);
+
+color:white;
+}
+
+.speak-btn:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(59,130,246,.4);
+}
+
+.stop-btn{
+background:linear-gradient(
+135deg,
+#ef4444,
+#dc2626
+);
+
+color:white;
+}
+
+.stop-btn:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(239,68,68,.4);
+}
+
+.footer{
+text-align:center;
+color:#94a3b8;
+font-size:14px;
+}
+
+.footer span{
+color:#60a5fa;
+font-weight:600;
+}
+
+@media(max-width:600px){
+
+.logo h1{
+font-size:2rem;
+}
+
+.buttons{
+flex-direction:column;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">
+<h1>Vaak<span>Shruti</span></h1>
+<p>Smart Text To Speech Converter</p>
+</div>
+
+<textarea
+id="text"
+placeholder="Type something you want VaakShruti to speak...">
+</textarea>
+
+<div class="controls">
+
+<select id="select"></select>
+
+<div class="buttons">
+
+<button class="speak-btn">
+SPEAK
+</button>
+
+<button class="stop-btn">
+STOP
+</button>
+
+</div>
+
+</div>
+
+<div class="footer">
+Powered by <span>VaakShruti AI</span>
+</div>
+
+</div>
+
+<script>
+
+let speech = new SpeechSynthesisUtterance();
+let voices = [];
+
+const voiceSelect = document.getElementById("select");
+
+function loadVoices(){
+
+voices = speechSynthesis.getVoices();
+
+voiceSelect.innerHTML = "";
+
+voices.forEach((voice,index)=>{
+
+const option = document.createElement("option");
+
+option.value = index;
+option.textContent = `${voice.name} (${voice.lang})`;
+
+voiceSelect.appendChild(option);
+
+});
+
+if(voices.length > 0){
+speech.voice = voices[0];
+}
+
+}
+
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+document.querySelector(".speak-btn")
+.addEventListener("click",()=>{
+
+const text =
+document.getElementById("text").value;
+
+if(text.trim()===""){
+alert("Please enter some text.");
+return;
+}
+
+speech.text = text;
+speech.voice = voices[voiceSelect.value];
+
+speechSynthesis.cancel();
+speechSynthesis.speak(speech);
+
+});
+
+document.querySelector(".stop-btn")
+.addEventListener("click",()=>{
+
+speechSynthesis.cancel();
+
+});
+
+</script>
+
+</body>
+</html>
